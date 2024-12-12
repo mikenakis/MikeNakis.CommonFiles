@@ -1,0 +1,86 @@
+<!--<Project Sdk="Microsoft.NET.Sdk">-->
+<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+
+	<PropertyGroup>
+		<!-- PEARL: the TargetFramework is necessary even when using the Microsoft.Build.NoTargets Sdk. -->
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- Reference: https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#pack-target -->
+		<PackageId>MikeNakis.AnalysisRules</PackageId>
+		<Title>Mike Nakis Analysis Rules</Title>
+		<Description>My .editorconfig and .globalconfig files</Description>
+		<!-- PEARL: Visual Studio will edit .csproj files and there is nothing we can do about it.
+					For example, Visual Studio will, every once in a while, replace &#169; with the copyright sign.
+					Of course, this replacement is one of the most innocuous things it will do.  Other times it will
+					seriously mess up the .csproj file to the point where it has to be reverted from source control. -->
+		<Copyright>Copyright &#169; Mike Nakis. All rights reserved.</Copyright>
+		<RepositoryUrl>https://github.com/mikenakis/MikeNakis.AnalysisRules.git</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageIcon>MikeNakis.AnalysisRules-Logo.png</PackageIcon>
+		<Version>$(RELEASE_VERSION)</Version>
+		<DevelopmentDependency>True</DevelopmentDependency>
+		<Authors>MikeNakis</Authors>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<!--<PackageLicenseExpression>MIT</PackageLicenseExpression>-->
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageProjectUrl>https://github.com/mikenakis/MikeNakis.AnalysisRules</PackageProjectUrl>
+		<PackageTags>editorconfig; globalconfig; source; compiletime</PackageTags>
+		<!-- PEARL: Building this project gives the following:
+					"warning NU5128: Some target frameworks declared in the dependencies group of the nuspec and the
+					 lib/ref folder do not have exact matches in the other location. Consult the list of actions below:
+					 - Add lib or ref assemblies for the net8.0 target framework"
+			 PEARL: This warning is being issued despite the fact that we are using the "Microsoft.Build.NoTargets" Sdk.
+			 PEARL: Microsoft documentation for NU5128 discusses it in detal, but omits to give it a simple name/title.
+					So, it shall be known as "NU5128".
+			 The following magical incantation fixes NU5128: -->
+		<SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
+		<!-- The following are not necessary because we use the Microsoft.Build.NoTargets Sdk -->
+		<!--<SkipCompilerExecution>True</SkipCompilerExecution>
+		<IncludeBuildOutput>False</IncludeBuildOutput>
+		<IncludeSymbols>False</IncludeSymbols>-->
+	</PropertyGroup>
+
+	<!-- Adapted from https://fullstackhero.medium.com/be0e7fd040a2 -->
+	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+		<PropertyGroup>
+			<File>RELEASE-NOTES.txt</File>
+		</PropertyGroup>
+		<!-- PEARL: The ReadLinesFromFile tag will silently fail if the file does not exist.
+					To correct this, we explicitly check whether the file exists, and deliberately fail if not. -->
+		<Error Condition="!Exists('$(File)')" Text="$(File) does not exist!" />
+		<ReadLinesFromFile File="$(File)">
+			<Output TaskParameter="Lines" ItemName="ReleaseNoteLines" />
+		</ReadLinesFromFile>
+		<PropertyGroup>
+			<PackageReleaseNotes>@(ReleaseNoteLines, '%0a')</PackageReleaseNotes>
+		</PropertyGroup>
+	</Target>
+
+	<!-- Adapted from https://devzone.channeladam.com/notebooks/languages/dotnet/editorconfig-distribution/ -->
+	<Target Name="CreateEditorConfig" BeforeTargets="BeforeBuild">
+		<ItemGroup>
+			<EditorConfigFilesToJoin Include=".editorconfig.header.txt; .editorconfig" />
+		</ItemGroup>
+		<ItemGroup>
+			<EditorConfigFileContents Include="$([System.IO.File]::ReadAllText(%(EditorConfigFilesToJoin.Identity)))" />
+		</ItemGroup>
+		<!--<WriteLinesToFile File="$(TMPDIR)/joined.editorconfig" Lines="@(EditorConfigFileContents)" Overwrite="true" />-->
+		<WriteLinesToFile File="temp/joined.editorconfig" Lines="@(EditorConfigFileContents)" Overwrite="true" />
+	</Target>
+
+	<ItemGroup>
+		<!-- Reference: https://devblogs.microsoft.com/nuget/nuget-contentFiles-demystified/ -->
+		<!--            https://blog.csmac.nz/post/speciality-nuget-packing/ -->
+		<None Include="MikeNakis.AnalysisRules-Logo.png" Pack="true" PackagePath="/" />
+		<None Include="build/*" Pack="true" PackagePath="build/" />
+		<None Include="LICENSE.md" Pack="true" PackagePath="/" />
+		<None Include="README-for-nuget.md" Pack="true" PackagePath="/README.md" />
+		<!-- PEARL: if 'tmp' is used instead of 'temp', no file gets copied. Same goes for '$(TMPDIR)'. -->
+		<None Include="temp/joined.editorconfig" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisAnalysisRules/.editorconfig" />
+		<None Include="*.globalconfig" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisAnalysisRules/" />
+	</ItemGroup>
+
+</Project>
