@@ -1,47 +1,27 @@
-# MikeNakis.AnalysisRules<br><sup><sub>My very own™ code analysis rules for DotNet.</sub></sup>
+Please see the real README file: [MikeNakis.CommonFiles.README.md](MikeNakis.CommonFiles.README.md)
 
-<!--- Note: This image looks fine in most markdown renderers, 
-            but not in Visual Studio, whose built-in markdown renderer is broken nowadays. 
-			Someone has brought it to their attention, (https://developercommunity.visualstudio.com/t/10774870)
-			and last I checked they were "investigating". -->
-<p align="center">
-  <img title="MikeNakis.AnalysisRules Logo" src="MikeNakis.AnalysisRules-Logo.svg" width="256" />
-</p>
+----------------------------
 
-[![Build](https://github.com/mikenakis/MikeNakis.AnalysisRules/actions/workflows/github-workflow.yml/badge.svg)](https://github.com/mikenakis/MikeNakis.AnalysisRules/actions/workflows/github-workflow.yml)
+Explanation:
 
-This package supplies the following files to projects that reference it:
+PEARL: Visual Studio suffers from a monstrous, insidious bug where the spell checker goes haywire if you have
+two files with the same name in the solution.
 
-- `.editorconfig`
-- `AllCode.globalconfig`
-- `ProductionCode.globalconfig`
-- `TestCode.globalconfig`
+To work around this bug, it is possible to give unique filenames to the vast majority of files in a
+solution, but then there are some stupid tools that require certain fixed filenames	for certain things.
 
-The new files appear in a subdirectory called `MikeNakisAnalysisRules` under the project directory, and they are all
-read-only.
+One such stupid tool is GitHub, and its requirement that the README file must be called README.
 
-The package also supplies a `MikeNakisAnalysisRules` property which points to the directory where the supplied files are 
-located, so they can be included as follows:
+The solution to this problem is to prefix the filename of the README file with the name of the project, i.e. 
+MyProject.README.md. (This has the added benefit of also making it easier to locate among editor tabs.) Then, we must
+have a fake README.md file for exclusive use by GitHub which only contains a link to MyProject.README.md. (This is what 
+this README.md file is, plus this whole text explaining why we are in this preposterous situation.)
 
-```xml
-<ItemGroup>
-	<!-- PEARL: If any .globalconfig files are not found, we get silent failure. Supposedly, 
-	     there is a ContinueOnError="ErrorAndStop" attribute, but it makes no difference. -->
-	<GlobalAnalyzerConfigFiles Include="$(MikeNakisAnalysisRules)AllCode.globalconfig" />
-	<GlobalAnalyzerConfigFiles Include="$(MikeNakisAnalysisRules)ProductionCode.globalconfig" />
-</ItemGroup>
-```
+- It is not possible to copy MyProject.README.md as .github/README.md, because then all relative links in it would be
+broken.
+ 
+- It is not possible to create a symbolic link called README.md pointing to MyProject.README.md, because GitHub is so 
+special that it refuses to follow the symbolic link; instead it renders the content of the symbolic link, which is the 
+filename of the target file, and it is plain text, not a link.
 
-Unfortunately, the `.editorconfig` file _**cannot**_ be included like that, so it is (automatically) copied from 
-`MikeNakisAnalysisRules` into the project directory. The copy is writable, so be careful not to modify it because any 
-edits you make to it will be lost next time the package is restored.
-
-It is best to refrain from adding `.editorconfig` to `.gitignore`, so that if you ever change `.editorconfig` you have a
-chance to take notice. Even if `.editorconfig` gets accidentally committed, next time the package is restored it will 
-appear as modified again, so you have more chances to take notice, and when you do eventually notice that you have been 
-losing the changes you have been making to it, you might still be able to find your lost changes in the git commit
-history.
-
-## License
-
-See [LICENSE.md](LICENSE.md)
+I will have a normal README file when either Visual Studio or GitHub fixes their shit. (And I am not holding by breath for that.)
