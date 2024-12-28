@@ -1,47 +1,30 @@
-<!--<Project Sdk="Microsoft.NET.Sdk">-->
-<Project Sdk="Microsoft.Build.NoTargets/3.7.56">
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- PEARL: There is a "Microsoft.Build.NoTargets" SDK, but if used, this project rebuilds on each build.
+		 A discussion is here: GitHub/microsoft/MSBuildSdks "Microsoft.Build.NoTargets project expects incorrect ouput"
+		 https://github.com/microsoft/MSBuildSdks/issues/148
+		 And the suggestion is "to provide to the FastUpToDate check what files take part in the check", but I do not
+		 want to mess with that. -->
 
 	<PropertyGroup>
-		<!-- PEARL: the TargetFramework is necessary even when using the Microsoft.Build.NoTargets Sdk. -->
+		<!-- PEARL: The TargetFramework is necessary even if we are not going to be compiling anything.
+		            See Stack Overflow: Why does Msbuild NoTargets csproj requires TargetFramework?
+					https://stackoverflow.com/q/71596190/773113 -->		
 		<TargetFramework>net8.0</TargetFramework>
+		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
+		<DebugType>None</DebugType>
+		<EnableDefaultItems>False</EnableDefaultItems>
+		<EnableNETAnalyzers>False</EnableNETAnalyzers>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<!-- Reference: https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#pack-target -->
-		<PackageId>MikeNakis.CommonFiles</PackageId>
-		<Title>Mike Nakis Common Files</Title>
-		<Description>Common files used by all of my dotnet projects.</Description>
-		<!-- PEARL: Visual Studio will edit .csproj files and there is nothing we can do about it.
-					For example, Visual Studio will, every once in a while, replace &#169; with the copyright sign.
-					Of course, this replacement is one of the most innocuous things it will do.  Other times it will
-					seriously mess up the .csproj file to the point where it has to be reverted from source control. -->
-		<Copyright>Copyright &#169; Mike Nakis. All rights reserved.</Copyright>
-		<RepositoryUrl>https://github.com/mikenakis/MikeNakis.CommonFiles.git</RepositoryUrl>
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<PackageIcon>MikeNakis.CommonFiles-Logo.png</PackageIcon>
-		<Version>$(RELEASE_VERSION)</Version>
-		<DevelopmentDependency>True</DevelopmentDependency>
-		<Authors>MikeNakis</Authors>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-		<!--<PackageLicenseExpression>MIT</PackageLicenseExpression>-->
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		<PackageProjectUrl>https://github.com/mikenakis/MikeNakis.CommonFiles</PackageProjectUrl>
-		<PackageTags>editorconfig; globalconfig; source; compiletime</PackageTags>
-		<!-- PEARL: Building this project gives the following:
-					"warning NU5128: Some target frameworks declared in the dependencies group of the nuspec and the
-					 lib/ref folder do not have exact matches in the other location. Consult the list of actions below:
-					 - Add lib or ref assemblies for the net8.0 target framework"
-			 PEARL: This warning is being issued despite the fact that we are using the "Microsoft.Build.NoTargets" Sdk.
-			 PEARL: Microsoft documentation for NU5128 discusses it in detal, but omits to give it a simple name/title.
-					So, it shall be known as "NU5128".
-			 The following magical incantation fixes NU5128: -->
-		<SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
-		<!-- The following are not necessary because we use the Microsoft.Build.NoTargets Sdk -->
-		<!--<SkipCompilerExecution>True</SkipCompilerExecution>
-		<IncludeBuildOutput>False</IncludeBuildOutput>
-		<IncludeSymbols>False</IncludeSymbols>-->
-	</PropertyGroup>
+	<!-- PEARL: The TargetFramework wastes time adding a whole bunch of analyzers to the dependencies of this project,
+				even though we have absolutely no use for them. The following magical incantation removes them.
+				(Just out of spite.) -->
+	<Target Name="DisableAnalyzers" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<Analyzer Remove="@(Analyzer)" />
+		</ItemGroup>
+	</Target>
 
 	<Target Name="CreateSymbolicLinkForReadme" BeforeTargets="BeforeBuild">
 		<!-- PEARL: Visual Studio suffers from a monstrous, insidious bug where the spell checker goes haywire if you
@@ -51,10 +34,16 @@
 			 PEARL: GitHub requires that the README file be named README, so it is impossible to give it a unique
 			        filename.
 					To work around this capriciousness of GitHub, we prefix the name of our README file with the name of
-					the project, (incidentally, this also makes it easier to locate among editor tabs,) and we create a
-					symbolic link called README.md which points to the actual README file.	-->
-		<Copy SourceFiles="$(ProjectName).README.md" DestinationFiles="README.md" 
-			UseSymboliclinksIfPossible="True" ErrorIfLinkFails="True" />
+					the project, (incidentally, this also makes it easier to locate it among editor tabs,) and we create
+					a symbolic link called README.md which points to the actual README file. -->
+		<PropertyGroup>
+			<!-- NOTE: the 'Source' must, of course, be a relative path. -->
+			<Source>$(ProjectName).README.md</Source>
+			<Destination>$(MSBuildProjectDirectory)\README.md</Destination>
+		</PropertyGroup>
+		<Copy SourceFiles="$(Source)" DestinationFiles="$(Destination)"
+			SkipUnchangedFiles="True" UseSymboliclinksIfPossible="True" ErrorIfLinkFails="True" />
+		<!--Condition="!Exists('$(Destination)')"-->
 	</Target>
 
 	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
@@ -84,6 +73,43 @@
 		<!--<WriteLinesToFile File="$(TMPDIR)/joined.editorconfig" Lines="@(JoinedFileContents)" Overwrite="true" />-->
 		<WriteLinesToFile File="temp/joined.editorconfig" Lines="@(JoinedFileContents)" Overwrite="true" />
 	</Target>
+
+	<!-- NuGet Packaging ******************************************************************************************* -->
+
+	<PropertyGroup>
+		<!-- Reference: https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#pack-target -->
+		<PackageId>MikeNakis.CommonFiles</PackageId>
+		<Title>Mike Nakis Common Files</Title>
+		<Description>Common files used by all of my dotnet projects.</Description>
+		<!-- PEARL: Visual Studio will edit .csproj files and there is nothing we can do about it.
+					For example, Visual Studio will, every once in a while, replace &#169; with the copyright sign.
+					Of course, this replacement is one of the most innocuous things it will do.  Other times it will
+					seriously mess up the .csproj file to the point where it has to be reverted from source control. -->
+		<Copyright>Copyright &#169; Mike Nakis. All rights reserved.</Copyright>
+		<RepositoryUrl>https://github.com/mikenakis/MikeNakis.CommonFiles.git</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageIcon>MikeNakis.CommonFiles-Logo.png</PackageIcon>
+		<Version>$(RELEASE_VERSION)</Version>
+		<DevelopmentDependency>True</DevelopmentDependency>
+		<Authors>MikeNakis</Authors>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<!--<PackageLicenseExpression>MIT</PackageLicenseExpression>-->
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageProjectUrl>https://github.com/mikenakis/MikeNakis.CommonFiles</PackageProjectUrl>
+		<PackageTags>editorconfig; globalconfig; source; compiletime</PackageTags>
+		<IncludeBuildOutput>False</IncludeBuildOutput>
+		<IncludeSymbols>False</IncludeSymbols>
+		<!-- PEARL: Building projects that depend on this package gives the following:
+					"warning NU5128: Some target frameworks declared in the dependencies group of the nuspec and the
+					 lib/ref folder do not have exact matches in the other location. Consult the list of actions below:
+					 - Add lib or ref assemblies for the net8.0 target framework"
+			 PEARL: This warning will be issued even if we use the "Microsoft.Build.NoTargets" Sdk.
+			 PEARL: Microsoft documentation for NU5128 discusses it in detal, but omits to give it a simple name/title.
+					So, it shall be known as "NU5128".
+			 The following magical incantation fixes NU5128: -->
+		<SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- Reference: https://devblogs.microsoft.com/nuget/nuget-contentFiles-demystified/ -->

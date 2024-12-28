@@ -18,7 +18,7 @@ call vsclean
 rd /S/Q %USERPROFILE%\Personal\Dev\Dotnet\Main\LocalNugetSource
 mkdir %USERPROFILE%\Personal\Dev\Dotnet\Main\LocalNugetSource
 	
-rd /S/Q %USERPROFILE%\.nuget\packages\mikenakis.analysisrules
+rd /S/Q %USERPROFILE%\.nuget\packages\mikenakis.commonfiles
 	
 dotnet pack
-dotnet nuget push bin/Release/MikeNakis.AnalysisRules.%RELEASE_VERSION%.nupkg --source %USERPROFILE%\Personal\Dev\Dotnet\Main\LocalNugetSource
+dotnet nuget push bin/Release/MikeNakis.CommonFiles.%RELEASE_VERSION%.nupkg --source %USERPROFILE%\Personal\Dev\Dotnet\Main\LocalNugetSource

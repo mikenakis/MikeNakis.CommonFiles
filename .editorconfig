@@ -1,6 +1,6 @@
 # This .editorconfig file contains options that cannot be placed in .globalconfig.
 # All options and analyzer rules that can go in .globalconfig should go in .globalconfig.
-#
+
 # PEARL: MSBuild systematically treats editorconfig files with a policy of silent failure: it will never issue any
 #        warnings or errors for any garbage that this file may contain.
 # PEARL: The Visual Studio text editor has very limited support for the editorconfig file syntax. It does some

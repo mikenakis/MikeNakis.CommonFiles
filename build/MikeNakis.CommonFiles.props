@@ -1,34 +1,53 @@
 <Project>
+
+	<!-- Get the path to the MikeNakis.CommonFiles project, which may and may not be available.
+	     (Typically, it will be available on my local development setup, but not accessible in GitHub actions. -->
 	<PropertyGroup>
-		<MikeNakisCommonFiles>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../contentFiles/cs/any/MikeNakisCommonFiles/'))</MikeNakisCommonFiles>
+		<LocalMikeNakisCommonFiles>$([System.IO.Path]::GetFullPath( '$(MSBuildProjectDirectory)\..\..\MikeNakis.CommonFiles' ))</LocalMikeNakisCommonFiles>
 	</PropertyGroup>
-	<!--PEARL: UseHardlinksIfPossible:True does not work, even when building outside Visual Studio: the file gets
-	           copied, not linked, and ErrorIfLinkFails:True has no effect. -->
-	<!--PEARL: UseSymboliclinksIfPossible:True does in fact create a symlink, but:
-				a) the file becomes writable, even though the file targeted by the symbolic link is not.
-				a) the file has no effect. (Apparently the tooling does not respect symlinks.) -->
-	<Target Name="CopyEditorConfig" BeforeTargets="BeforeBuild">
-		<Copy SourceFiles="$(MikeNakisCommonFiles).editorconfig" DestinationFolder="$(MSBuildProjectDirectory)"
-			  SkipUnchangedFiles="True" OverwriteReadOnlyFiles="True" UseSymboliclinksIfPossible="True"
-			  ErrorIfLinkFails="True" />
-		<!--<MakeFileReadOnly filePath="$(ProjectDir).editorconfig" />-->
+
+	<!-- If the MikeNakis.CommonFiles project is available:
+	     Set the AbsolutePathToMikeNakisCommonFiles property to point to the files in the local project. -->
+	<PropertyGroup Condition="Exists('$(LocalMikeNakisCommonFiles)')" >
+		<AbsolutePathToMikeNakisCommonFiles>$(LocalMikeNakisCommonFiles)</AbsolutePathToMikeNakisCommonFiles>
+	</PropertyGroup>
+
+	<!-- If the MikeNakis.CommonFiles project is NOT available:
+	     Set the AbsolutePathToMikeNakisCommonFiles property to point to the files in the nuget repository. -->
+	<PropertyGroup Condition="!Exists('$(LocalMikeNakisCommonFiles)')">
+		<AbsolutePathToMikeNakisCommonFiles>$([System.IO.Path]::GetFullPath( '$(MSBuildThisFileDirectory)..\contentFiles\cs\any\MikeNakisCommonFiles' ))</AbsolutePathToMikeNakisCommonFiles>
+	</PropertyGroup>
+
+	<!-- Get the relative path to the common files. -->
+	<PropertyGroup>
+		<MikeNakisCommonFiles>$([MSBuild]::MakeRelative( '$(MSBuildProjectDirectory)', '$(AbsolutePathToMikeNakisCommonFiles)' ))</MikeNakisCommonFiles>
+	</PropertyGroup>
+
+	<Target Name="TestTarget" BeforeTargets="BeforeBuild">
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectFile): MSBuildProjectDirectory: $(MSBuildProjectDirectory)" />
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectFile): LocalMikeNakisCommonFiles: $(LocalMikeNakisCommonFiles)" />
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectFile): AbsolutePathToMikeNakisCommonFiles: $(AbsolutePathToMikeNakisCommonFiles)" />
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectFile): MikeNakisCommonFiles: $(MikeNakisCommonFiles)" />
 	</Target>
 
-	<!-- PEARL: UsingTask ParameterType cannot be an enum! 
-	            Ideally, this task would be a general-purpose SetFileAttributes task, but it cannot be, because we
-				cannot pass it an enum,	because msbuild uses System.Convert.ChangeType to convert parameter types,
-				and this fails on enums. 
-				This: https://github.com/dotnet/msbuild/issues/316 indicates that this has been fixed, but it hasn't.
-				We could pass a string and parse it in C# code, but it is easier to just narrow the scope of the task to
-				only set the ReadOnly attribute. -->
-	<UsingTask TaskName="MakeFileReadOnly" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
-		<ParameterGroup>
-			<filePath ParameterType="System.String" Required="true" />
-		</ParameterGroup>
-		<Task>
-			<Code Type="Fragment" Language="cs">
-				System.IO.File.SetAttributes( filePath, System.IO.FileAttributes.ReadOnly );
-			</Code>
-		</Task>
-	</UsingTask>
+	<!--PEARL: UseHardlinksIfPossible:True does not work, even when building outside Visual Studio: the file gets
+	           copied, not linked, and ErrorIfLinkFails:True has no effect. -->
+	<!--PEARL: UseSymboliclinksIfPossible:True does in fact create a symlink, but the file becomes writable, even though
+	           the file targeted by the symbolic link is not. -->
+	<Target Name="CopyEditorConfig" BeforeTargets="BeforeBuild">
+		<PropertyGroup>
+			<Source>$(MikeNakisCommonFiles)\.editorconfig</Source>
+			<Destination>$(MSBuildProjectDirectory)\.editorconfig</Destination>
+		</PropertyGroup>
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectFile): Creating symbolic link '$(Destination)' targeting '$(Source)'" />
+		<Error Condition="!Exists('$(Source)')" Text="Source does not exist: '$(Source)'" />
+		<!-- PEARL: The following  "Copy" task will cause the project to rebuild on each build, even if
+		            "SkipUnchangedFiles" is "True".
+					The "Condition:!Exists... OR..." magical incantation is necessary to fix this. -->
+		<Copy SourceFiles="$(Source)" DestinationFiles="$(Destination)"
+			UseSymboliclinksIfPossible="True" ErrorIfLinkFails="True"
+			Condition="!Exists('$(Destination)') OR $([System.IO.File]::GetLastWriteTime('$(Source)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(Destination)').Ticks)" />
+		<Error Condition="!Exists('$(Destination)')" Text="Destination does not exist: '$(Destination)'" />
+	</Target>
+
 </Project>
