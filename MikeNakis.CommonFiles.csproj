@@ -43,6 +43,20 @@
 		<IncludeSymbols>False</IncludeSymbols>-->
 	</PropertyGroup>
 
+	<Target Name="CreateSymbolicLinkForReadme" BeforeTargets="BeforeBuild">
+		<!-- PEARL: Visual Studio suffers from a monstrous, insidious bug where the spell checker goes haywire if you
+		            have two files with the same name in the solution.
+					To work around this bug of Visual Studio, every single file in the entire solution must have a
+					unique filename.
+			 PEARL: GitHub requires that the README file be named README, so it is impossible to give it a unique
+			        filename.
+					To work around this capriciousness of GitHub, we prefix the name of our README file with the name of
+					the project, (incidentally, this also makes it easier to locate among editor tabs,) and we create a
+					symbolic link called README.md which points to the actual README file.	-->
+		<Copy SourceFiles="$(ProjectName).README.md" DestinationFiles="README.md" 
+			UseSymboliclinksIfPossible="True" ErrorIfLinkFails="True" />
+	</Target>
+
 	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
 		<!-- Adapted from https://fullstackhero.medium.com/be0e7fd040a2 -->
 		<PropertyGroup>
