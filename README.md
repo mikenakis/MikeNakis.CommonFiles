@@ -1,1 +1,1 @@
-MikeNakis.CommonFiles.README.md
+./MikeNakis.CommonFiles.README.md

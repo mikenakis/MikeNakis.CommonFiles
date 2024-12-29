@@ -1,0 +1,164 @@
+<Project>
+
+	<!-- PEARL: This file must not have a .proj extension, otherwise the `dotnet` command will pick this file instead of
+		the .csproj file. This can be avoided by invoking the `dotnet` command explicitly passing it the .csproj file as
+		a parameter, but it is easier to just give this file a non-.csproj extension so that the `dotnet` command does
+		not get confused. -->
+
+	<!-- PEARL: There is a "Microsoft.Build.NoTargets" SDK, but if used, this project rebuilds on each build.
+		A discussion is here: GitHub/microsoft/MSBuildSdks "Microsoft.Build.NoTargets project expects incorrect ouput"
+		https://github.com/microsoft/MSBuildSdks/issues/148
+		And the suggestion is to "provide to the FastUpToDate check what files take part in the check", but I do not
+		want to mess with that. -->
+
+	<PropertyGroup>
+		<!-- PEARL: The TargetFramework is necessary despite the fact that we are not actually compiling anything.
+			See Stack Overflow: "Why does Msbuild NoTargets csproj requires TargetFramework?"
+			ttps://stackoverflow.com/q/71596190/773113 -->
+		<TargetFramework>net8.0</TargetFramework>
+		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
+		<DebugType>None</DebugType>
+		<EnableDefaultItems>False</EnableDefaultItems>
+		<EnableNETAnalyzers>False</EnableNETAnalyzers>
+	</PropertyGroup>
+
+	<!-- PEARL: MSBuild wastes time adding a whole bunch of analyzers to the dependencies of this project, even though
+		we have absolutely no use for them because we are not compiling anything. The following magical incantation
+		removes them. (Just out of spite.) -->
+	<Target Name="DisableAnalyzers" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<Analyzer Remove="@(Analyzer)" />
+		</ItemGroup>
+	</Target>
+
+	<!-- PEARL: Visual Studio suffers from a monstrous, insidious bug where the spell checker goes haywire if you happen
+		to have	two files with the same name in the solution.
+		To work around this bug, every single file in the entire solution must have a unique filename. -->
+	<!-- PEARL: GitHub requires the README file to be named README, so we cannot give it a unique filename.
+		To work around this capriciousness of GitHub, we prefix the name of our README file with the name of the
+		project, (incidentally, this also makes it easier to locate it among editor tabs,) and we create a symbolic
+		link called README.md which points to the actual README file. -->
+	<PropertyGroup>
+		<!-- NOTE: when creating a symbolic link, the 'SourceFiles' should always be a relative path! -->
+		<SourceReadMe>.\$(MSBuildProjectName).README.md</SourceReadMe>
+		<DestinationReadMe>README.md</DestinationReadMe>
+	</PropertyGroup>
+	<Target Name="CreateSymbolicLinkForReadme" BeforeTargets="BeforeBuild"
+			Condition="!Exists('$(DestinationReadMe)') OR $([System.IO.File]::GetLastWriteTime('$(SourceReadMe)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(DestinationReadMe)').Ticks)">
+		<Warning Text="Creating (or re-creating) symbolic link '$(DestinationReadMe)' targeting '$(SourceReadMe)'" />
+		<Error Condition="!Exists('$(SourceReadMe)')" Text="Source does not exist: '$(SourceReadMe)'" />
+		<Copy SourceFiles="$(SourceReadMe)" DestinationFiles="$(DestinationReadMe)" SkipUnchangedFiles="True"
+			  UseSymboliclinksIfPossible="True" ErrorIfLinkFails="True" />
+		<!--Condition="!Exists('$(DestinationReadMe)')"-->
+		<Error Condition="!Exists('$(DestinationReadMe)')" Text="Destination does not exist: '$(DestinationReadMe)'" />
+	</Target>
+
+	<!-- In this project, .editorconfig lives in files/, so we need a symbolic link to it in the project directory. -->
+	<PropertyGroup>
+		<!-- NOTE: when creating a symbolic link, the 'SourceFiles' should always be a relative path! -->
+		<SourceEditorConfig>files\.editorconfig</SourceEditorConfig>
+		<DestinationEditorConfig>.editorconfig</DestinationEditorConfig>
+	</PropertyGroup>
+	<Target Name="CreateSymbolicLinkForEditorConfig" BeforeTargets="BeforeBuild"
+			Condition="!Exists('$(DestinationEditorConfig)') OR $([System.IO.File]::GetLastWriteTime('$(SourceEditorConfig)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(DestinationEditorConfig)').Ticks)">
+		<Warning Text="Creating (or re-creating) symbolic link '$(DestinationEditorConfig)' targeting '$(SourceEditorConfig)'" />
+		<Error Condition="!Exists('$(SourceEditorConfig)')" Text="Source does not exist: '$(SourceEditorConfig)'" />
+		<!-- PEARL: The following  "Copy" task will cause the project to rebuild on each build, even if
+		            "SkipUnchangedFiles" is "True".
+					The "Condition:!Exists... OR..." magical incantation is necessary to fix this. -->
+		<Copy SourceFiles="$(SourceEditorConfig)" DestinationFiles="$(DestinationEditorConfig)"
+			UseSymboliclinksIfPossible="True" ErrorIfLinkFails="True" />
+		<Error Condition="!Exists('$(DestinationEditorConfig)')" Text="Destination does not exist: '$(DestinationEditorConfig)'" />
+	</Target>
+
+	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+		<!-- Adapted from https://fullstackhero.medium.com/be0e7fd040a2 -->
+		<PropertyGroup>
+			<File>RELEASE-NOTES.txt</File>
+		</PropertyGroup>
+		<!-- PEARL: The ReadLinesFromFile tag will silently fail if the file does not exist.
+					To correct this, we explicitly check whether the file exists, and deliberately fail if not. -->
+		<Error Condition="!Exists('$(File)')" Text="$(File) does not exist!" />
+		<ReadLinesFromFile File="$(File)">
+			<Output TaskParameter="Lines" ItemName="ReleaseNoteLines" />
+		</ReadLinesFromFile>
+		<PropertyGroup>
+			<PackageReleaseNotes>@(ReleaseNoteLines, '%0a')</PackageReleaseNotes>
+		</PropertyGroup>
+	</Target>
+
+	<!-- PEARL: the .editorconfig file must reside in the referencing project's directory, otherwise editorconfig does
+		not work. For this reason, we create a symbolic link in the referencing project's directory which points to the
+		.editorconfig file in the contentFiles/cs/Any directory of this package.
+		Visual Studio protects files in the contentFiles/cs/Any directory of the package by presenting them as read-only
+		when viewed from within the referencing project; however, the symbolic link circumvents Visual Studio's
+		protection, resulting in the .editorconfig file appearing as writable from within the referencing project.
+		Thus, we have to prepend some text to the .editorconfig file which says "Do not edit this file!". -->
+	<Target Name="CreateEditorConfigForNupkg" BeforeTargets="BeforeBuild">
+		<!-- Adapted from https://devzone.channeladam.com/notebooks/languages/dotnet/editorconfig-distribution/ -->
+		<ItemGroup>
+			<FilesToJoin Include=".editorconfig.header.txt; files/.editorconfig" />
+		</ItemGroup>
+		<ItemGroup>
+			<JoinedFileContents Include="$([System.IO.File]::ReadAllText(%(FilesToJoin.Identity)))" />
+		</ItemGroup>
+		<!--<WriteLinesToFile File="$(TMPDIR)/joined.editorconfig" Lines="@(JoinedFileContents)" Overwrite="true" />-->
+		<WriteLinesToFile File="temp/joined.editorconfig" Lines="@(JoinedFileContents)" Overwrite="true" />
+	</Target>
+
+	<!-- PEARL: Visual Studio will, entirely capriciously, hide certain files from the Solution Explorer. So we have to
+		manually add them to the project. Because it is always fun to manually reference your own existing files in
+		order to be able to open them. -->
+	<ItemGroup>
+		<None Include="MikeNakis.CommonFiles.proj.xml" />
+		<None Include="files\.editorconfig" />
+	</ItemGroup>
+
+	<!-- NuGet Packaging ******************************************************************************************* -->
+
+	<PropertyGroup>
+		<!-- Reference: https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets#pack-target -->
+		<PackageId>MikeNakis.CommonFiles</PackageId>
+		<Title>Mike Nakis Common Files</Title>
+		<Description>Common files used by all of my dotnet projects.</Description>
+		<Copyright>Copyright &#169; Mike Nakis. All rights reserved.</Copyright>
+		<RepositoryUrl>https://github.com/mikenakis/MikeNakis.CommonFiles.git</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageIcon>MikeNakis.CommonFiles-Logo.png</PackageIcon>
+		<Version>$(RELEASE_VERSION)</Version>
+		<DevelopmentDependency>True</DevelopmentDependency>
+		<Authors>MikeNakis</Authors>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<!--<PackageLicenseExpression>MIT</PackageLicenseExpression>-->
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageProjectUrl>https://github.com/mikenakis/MikeNakis.CommonFiles</PackageProjectUrl>
+		<PackageTags>editorconfig; globalconfig; source; compiletime</PackageTags>
+		<IncludeBuildOutput>False</IncludeBuildOutput>
+		<IncludeSymbols>False</IncludeSymbols>
+		<!-- PEARL: Building projects that depend on this package gives the following:
+					"warning NU5128: Some target frameworks declared in the dependencies group of the nuspec and the
+					 lib/ref folder do not have exact matches in the other location. Consult the list of actions below:
+					 - Add lib or ref assemblies for the net8.0 target framework"
+			 PEARL: This warning will be issued even if we use the "Microsoft.Build.NoTargets" Sdk.
+			 PEARL: Microsoft documentation for NU5128 discusses it in detal, but omits to give it a simple name/title.
+					So, it shall be known as "NU5128".
+			 The following magical incantation fixes NU5128: -->
+		<SuppressDependenciesWhenPacking>True</SuppressDependenciesWhenPacking>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Reference: https://devblogs.microsoft.com/nuget/nuget-contentFiles-demystified/ -->
+		<!--            https://blog.csmac.nz/post/speciality-nuget-packing/ -->
+		<!-- PEARL: if any of the files specified below are not found, we get silent failure. -->
+		<None Include="MikeNakis.CommonFiles-Logo.png" Pack="true" PackagePath="/" />
+		<None Include="LICENSE.md" Pack="true" PackagePath="/" />
+		<None Include="README-for-nuget.md" Pack="true" PackagePath="/README.md" />
+		<None Include="build/*" Pack="true" PackagePath="build/" />
+		<!-- PEARL: if 'tmp' is used instead of 'temp', no file gets copied. Same goes for '$(TMPDIR)'. -->
+		<None Include="temp/joined.editorconfig" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/.editorconfig" />
+		<None Include="files/*.globalconfig" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/" />
+		<None Include="files/BannedSymbols.txt" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/" />
+	</ItemGroup>
+
+</Project>

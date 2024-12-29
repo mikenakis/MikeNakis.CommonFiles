@@ -1,5 +1,6 @@
 csproj
-nakis
-globalconfig
-Hardlinks
+dotnet
 gitignore
+globalconfig
+hardlinks
+nakis

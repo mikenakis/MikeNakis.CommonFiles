@@ -1,0 +1,23 @@
+// Solution-wide banned symbols.
+// For documentation, see https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md
+// PEARL: if you try adding this file to "Solution Items", Visual Studio will refuse with some ridiculous error message
+//        saying something along the lines that a project file cannot be added to the solution items.
+//        However, you can manually edit the solution file and add the file to it, and then everything is fine.
+
+M:System.Linq.Enumerable.ToArray`1(System.Collections.Generic.IEnumerable{``0}) ; Use `.Collect()` instead.
+T:System.Collections.Generic.List`1 ; Use new MutableList<T>( enumerable ) instead.
+M:System.Linq.Enumerable.ToList`1(System.Collections.Generic.IEnumerable{``0}) ; Use `ToMutableList()` instead.
+//M:System.Linq.Enumerable.AsEnumerable`1(System.Collections.Generic.IEnumerable{``0}) ; 
+P:System.DateTime.Now ; 
+P:System.DateTime.UtcNow ; 
+M:System.DateTimeOffset.op_Implicit(System.DateTime) ; Do not implicitly cast DateTime to DateTimeOffset.
+T:System.IO.File ; Use `FilePath` instead.
+T:System.IO.Directory ; Use `DirectoryPath` instead.
+T:System.IO.Path ; Use `FilePath` or `DirectoryPath` instead.
+
+//TODO:
+//M:System.Linq.Enumerable.SequenceEqual`1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0}) ; Use `DotNetHelpers.Equals()` instead.
+
+//T:Graphs.DirectedGraph`1;Don't use it
+//deprecate dotnet path and directory
+//datetime new
