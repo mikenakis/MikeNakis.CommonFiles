@@ -2168,7 +2168,7 @@ dotnet_diagnostic.SYSLIB1043.severity = warning
 dotnet_diagnostic.SYSLIB1044.severity = warning
 
 # SYSLIB1045: "Use GeneratedRegexAttribute to generate the regular expression implementation at compile time."
-dotnet_diagnistic.SYSLIB1045.severity = suggestion
+dotnet_diagnistic.SYSLIB1045.severity = none
 # Justification: I doubt that compile time generation is worth the extra complication and the hassle.
 
 #######################################################################################################################
@@ -2203,7 +2203,7 @@ dotnet_diagnostic.SYSLIB1053.severity = warning
 
 # SYSLIB1054: "Use LibraryImportAttribute instead of DllImportAttribute to generate p/invoke marshalling code at
 #              compile time."
-dotnet_diagnostic.SYSLIB1054.severity = suggestion
+dotnet_diagnostic.SYSLIB1054.severity = none
 # Justification: I am not convinced that generation of p/invoke marshalling code at compile time is sufficiently
 #     important to warrant receiving a warning about it.
 
@@ -2277,7 +2277,7 @@ dotnet_diagnostic.SYSLIB1095.severity = warning
 
 # SYSLIB1096: "Use GeneratedComInterfaceAttribute instead of ComImportAttribute to generate COM marshalling code at
 #    compile time."
-dotnet_diagnostic.SYSLIB1096.severity = suggestion
+dotnet_diagnostic.SYSLIB1096.severity = none
 # Justification: I am not convinced that generation of p/invoke marshalling code at compile time is sufficiently
 #     important to warrant receiving a warning about it.
 

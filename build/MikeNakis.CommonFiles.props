@@ -107,11 +107,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4">
+		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" Condition="'$(IncludeMikeNakisBannedApis)' != 'False'">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
-		<AdditionalFiles Include="$(MikeNakisCommonFiles)\BannedSymbols.txt" />
+		<AdditionalFiles Include="$(MikeNakisCommonFiles)\BannedSymbols.txt" Condition="'$(IncludeMikeNakisBannedApis)' != 'False'" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" Condition="'$(IsTestProject)' == 'True'" />
 		<PackageReference Include="MSTest.TestAdapter" Version="3.6.2" Condition="'$(IsTestProject)' == 'True'" />
 		<PackageReference Include="MSTest.TestFramework" Version="3.6.2" Condition="'$(IsTestProject)' == 'True'" />
