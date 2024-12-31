@@ -30,7 +30,8 @@
 	</Target>-->
 
 	<!-- PEARL: The .editorconfig file must reside in the project directory, it cannot be placed elsewhere.
-	            To overcome this limitation, we create a symbolic link to it. -->
+	            To overcome this limitation, we create a symbolic link in the project directory, pointing to the
+				.editorconfig file in the MikeNakis.CommonFiles directory. -->
 	<!-- PEARL: UseHardlinksIfPossible:True does not work, even when building outside Visual Studio: the file gets
 	            copied, not linked, and ErrorIfLinkFails:True has no effect. -->
 	<!-- PEARL: UseSymboliclinksIfPossible:True does in fact create a symbolic link, but the file becomes writable, even
@@ -57,6 +58,7 @@
 		<Nullable>Enable</Nullable>
 
 		<!-- Magical incantations necessary for the magic to work -->
+		<!-- TODO: move this to project files that need it! -->
 		<IsPackable>false</IsPackable>
 		<PreserveCompilationContext>false</PreserveCompilationContext>
 	</PropertyGroup>
@@ -89,21 +91,34 @@
 		            "CSC : warning EnableGenerateDocumentationFile: Set MSBuild property 'GenerateDocumentationFile'
 					to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build" -->
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+
+		<!-- TODO: research IsTestingPlatformApplication and do something about it -->
+		<IsTestingPlatformApplication>False</IsTestingPlatformApplication>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<EnableNETAnalyzers>False</EnableNETAnalyzers>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(Configuration)'=='Debug'">
+	<Target Name="ShowMessages" BeforeTargets="BeforeBuild">
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Production Project Setup" Condition="'$(IsTestProject)' != 'True'" />
+		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Test Project Setup" Condition="'$(IsTestProject)' == 'True'" />
+	</Target>
+
+	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
 		<AdditionalFiles Include="$(MikeNakisCommonFiles)\BannedSymbols.txt" />
-		<!-- PEARL: if this file is not found, we get silent failure. -->
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" Condition="'$(IsTestProject)' == 'True'" />
+		<PackageReference Include="MSTest.TestAdapter" Version="3.6.2" Condition="'$(IsTestProject)' == 'True'" />
+		<PackageReference Include="MSTest.TestFramework" Version="3.6.2" Condition="'$(IsTestProject)' == 'True'" />
+		<!-- PEARL: if a globalconfig file is not found, we get silent failure. -->
 		<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)\AllCode.globalconfig" />
+		<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)\ProductionCode.globalconfig" Condition="'$(IsTestProject)' != 'True'" />
+		<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)\TestCode.globalconfig" Condition="'$(IsTestProject)' == 'True'" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -111,29 +126,5 @@
 		    https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-improve-diagnostics-debugging-with-sourcelink -->
 		<!--<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>-->
 	</ItemGroup>
-
-	<!-- If this is not a test project: -->
-	<Target Name="ProductionProjectsSetup" BeforeTargets="BeforeBuild" Condition="'$(IsTestProject)'!='True'">
-		<!--<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Production Project Setup" />-->
-		<ItemGroup>
-			<!-- PEARL: if this file is not found, we get silent failure. -->
-			<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)/ProductionCode.globalconfig" />
-		</ItemGroup>
-	</Target>
-	<!-- Otherwise (if this is a test project): -->
-	<Target Name="TestProjectsSetup" BeforeTargets="BeforeBuild" Condition="'$(IsTestProject)'=='True'">
-		<!--<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Test Project Setup" />-->
-		<ItemGroup>
-			<!-- NOTE: we cannot reference the test framework assemblies here, because package references are resolved
-				at restore time, so it is too late now. -->
-			<!-- PEARL: if this file is not found, we get silent failure. -->
-			<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)/TestCode.globalconfig" />
-		</ItemGroup>
-		<PropertyGroup>
-			<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-			<IsTestingPlatformApplication>False</IsTestingPlatformApplication>
-		</PropertyGroup>
-
-	</Target>
 
 </Project>

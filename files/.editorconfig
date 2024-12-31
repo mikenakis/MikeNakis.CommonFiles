@@ -100,18 +100,18 @@ max_line_length = off
 #    feature of the editor is for.
 
 # The "guidelines" setting is implemented by a Visual Studio Extension.
-# - "EditorConfig Guidelines" by Ivan.Z -- https://marketplace.visualstudio.com/items?itemName=Ivan.EditorConfigGuidelines
-# - "Editor Guidelines" by Paul Harrington -- https://marketplace.visualstudio.com/items?itemName=PaulHarrington.EditorGuidelinesPreview
-# The better one is "Editor Guidelines" by Paul Harrington.
+# - "EditorConfig Guidelines" by Ivan.Z
+# - "Editor Guidelines" by Paul Harrington
 guidelines = 120
 # Justification: Toto I don't think we are in the Eighties anymore.
 
+# The "Editor Guidelines" extension by Paul Harrington supports styling. That's nice.
 guidelines_style = 2px dotted 40966969
 
 ###############################################################################
 
-# PEARL: There exists no official, canonical, authoritative, exhaustive reference for the spell checker.
-#        All that exists is an article and some blog posts that talk about it in wishy-washy, hand-wavy terms:
+# PEARL: As of the time of writing this, there exists no official, authoritative reference for the spell checker.
+#        All that exists is a "learn about" article and some blog posts that talk about it in hand-wavy terms:
 #         - "Visual Studio Spell Checker Preview Now Available"
 #           https://devblogs.microsoft.com/visualstudio/visual-studio-spell-checker-preview-now-available/
 #         - "Learn about the Spell Checker"
@@ -125,6 +125,8 @@ guidelines_style = 2px dotted 40966969
 #        section has no effect: the spell checker will still refuse to examine anything but .cs files and .md files.
 #        This means that .xaml files, .csproj files, and even this very .editorconfig file, will NOT be spell-checked,
 #        and there is absolutely nothing we can do about it. Because, Microsoft.
+#        This is especially evil in light of the fact it is precisely these file formats that have the most to benefit
+#        from spell-checking, since spelling mistakes in these files cause silent failure.
 
 [*.cs;*.md]
 
@@ -146,8 +148,8 @@ spelling_use_default_exclusion_dictionary = false
 
 # Possible values seem to be: error, warning, information, hint.
 # PEARL: this setting is a joke. It will only affect the coloring of spelling messages in the editor and in the "Error
-#	List" window of Visual Studio. It will not fail the build if set to error, and it will not cause the "Error List"
-#   window to show spelling mistakes in unopened files.
+#	List" window of Visual Studio. Selecting "error" will not fail the build, and will not give us any way to see all
+#   spelling mistakes in the entire solution. (Spelling mistakes will only be shown in unopened files.)
 spelling_error_severity = information
 
 ########################################################################################################################
@@ -157,11 +159,6 @@ spelling_error_severity = information
 # IDE0055: "Formatting rule"
 #          a.k.a. "Fix formatting"
 # PEARL: These are all the meager few formatting options supported by Microsoft. This is a joke.
-# PEARL: The rules for spaces between parentheses in method calls are also applied to `nameof` and `typeof` even though
-#        they are definitely not method calls! (But they are _not_ applied to `checked()`!)
-# PEARL: The options below will cause the `for( ;; )` construct to be flagged with "IDE0055: Fix formatting". The quick
-#        fix will reformat it like this: `for(; ; )`, disregarding the rule which requires spaces inside parentheses.
-#        The only way to avoid this problem is to replace `for( ;; )` with the inferior `while( true )` construct.
 dotnet_diagnostic.IDE0055.severity = warning
 
 	dotnet_sort_system_directives_first = true
@@ -209,11 +206,32 @@ dotnet_diagnostic.IDE0055.severity = warning
 	csharp_space_between_empty_square_brackets = false
 	csharp_space_between_method_call_empty_parameter_list_parentheses = false
 	csharp_space_between_method_call_name_and_opening_parenthesis = false
+
+	# PEARL: The following rule is are also applied to `nameof` and `typeof` even though they are definitely not method
+	#	calls! (But it is _not_ applied to `checked()`!)
 	csharp_space_between_method_call_parameter_list_parentheses = true
+
 	csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
 	csharp_space_between_method_declaration_name_and_open_parenthesis = false
 	csharp_space_between_method_declaration_parameter_list_parentheses = true
+
+	# Valid values: control_flow_statements, expressions, type_casts, false.
+	# PEARL: Any other value is treated with silent failure.
+	# PEARL: This setting controls space between parentheses in all situations _EXCEPT_ those controlled by all other
+	#	csharp_space_between_*_parentheses options.
+	# PEARL: Microsoft offers these formatting options which let you deviate from their recommended standard, but they
+	#   have never actually tried them to make sure they actually work for anything but their recommended standard.
+	#   ("You can choose any color you like as long as it is blue.")
+	#   For example, the combination of the following two:
+	#   - `csharp_space_between_parentheses = control_flow_statements`
+	#   = `csharp_space_before_semicolon_in_for_statement = false`
+	#   will cause the `for( ;; )` construct to be flagged with "IDE0055: Fix formatting", and reformatting it will mess
+	#   it up like this: `for(; ; )`. The only way to avoid this problem is to avoid the `for( ;; )` construct and use
+	#   the inferior `while( true )` construct instead.
 	csharp_space_between_parentheses = control_flow_statements
+
+	# PEARL: This controls space between all square brackets; thus, there is no way to differentiate between array
+	#	indexing expressions, array initialization statements, and indexer declarations.
 	csharp_space_between_square_brackets = false
 
 ########################################################################################################################
