@@ -105,16 +105,8 @@
 		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Test Project Setup" Condition="'$(IsTestProject)' == 'True'" />
 	</Target>
 
-	<ItemGroup>
-		<PackageReference Include="coverlet.collector" Version="6.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" Condition="'$(IncludeMikeNakisBannedApis)' != 'False'">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
+	<ItemGroup Condition="'$(Configuration)'=='Debug'">
 		<AdditionalFiles Include="$(MikeNakisCommonFiles)\BannedSymbols.txt" Condition="'$(IncludeMikeNakisBannedApis)' != 'False'" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" Condition="'$(IsTestProject)' == 'True'" />
-		<PackageReference Include="MSTest.TestAdapter" Version="3.6.2" Condition="'$(IsTestProject)' == 'True'" />
-		<PackageReference Include="MSTest.TestFramework" Version="3.6.2" Condition="'$(IsTestProject)' == 'True'" />
 		<!-- PEARL: if a globalconfig file is not found, we get silent failure. -->
 		<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)\AllCode.globalconfig" />
 		<GlobalAnalyzerConfigFiles Include="$(MikeNakisCommonFiles)\ProductionCode.globalconfig" Condition="'$(IsTestProject)' != 'True'" />

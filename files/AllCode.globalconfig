@@ -2168,7 +2168,7 @@ dotnet_diagnostic.SYSLIB1043.severity = warning
 dotnet_diagnostic.SYSLIB1044.severity = warning
 
 # SYSLIB1045: "Use GeneratedRegexAttribute to generate the regular expression implementation at compile time."
-dotnet_diagnistic.SYSLIB1045.severity = none
+dotnet_diagnostic.SYSLIB1045.severity = none
 # Justification: I doubt that compile time generation is worth the extra complication and the hassle.
 
 #######################################################################################################################

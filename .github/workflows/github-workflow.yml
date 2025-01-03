@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 env:
-# PEARL: The VersionPrefix, VersionSuffix mechanism is retarded, because:
+# PEARL: The VersionPrefix, VersionSuffix mechanism is retarded!
 #        - The version prefix must be exactly three numbers separated by periods. 
 #          If you omit the last number, a zero will be automagically supplied for you.
 #        - Apparently, the entire version number may contain at most one dash, which is automagically supplied when the
@@ -21,7 +21,6 @@ env:
 #          is entirely useless for any other scenario.
 #        Therefore, we have to specify the entire version here.
   RELEASE_VERSION: 1.1.${{github.run_number}}${{github.run_attempt}}
-  TMPDIR: /tmp/
 
 jobs:
   build:
@@ -40,14 +39,26 @@ jobs:
     - name: "restore"
       run: dotnet restore
 
-    - name: "build: Debug"
-      run: dotnet build --configuration Debug --no-restore
+#    - name: "build: Debug"
+# PEARL: GitHub supplies some retarded default parameters to 'dotnet build' which make the output look completely different from what it looks when building locally.
+#        For example, the output of "Message" tasks is not shown, even when "Importance" is set to "High". 
+#        The "-ConsoleLoggerParameters:off" magical incantation is necessary to correct this.
+#      run: dotnet build --configuration Debug --no-restore -ConsoleLoggerParameters:off
+
+#    - name: "test"
+#      run: dotnet test --configuration Debug --no-build --verbosity normal
 
     - name: "build: Release"
-      run: dotnet build --configuration Release --no-restore
+# PEARL: GitHub supplies some retarded default parameters to 'dotnet build' which make the output look completely different from what it looks when building locally.
+#        For example, the output of "Message" tasks is not shown, even when "Importance" is set to "High". 
+#        The "-ConsoleLoggerParameters:off" magical incantation is necessary to correct this.
+      run: dotnet build --configuration Release --no-restore -ConsoleLoggerParameters:off
 
     - name: "pack"
       run: dotnet pack --configuration Release --no-restore --no-build
+
+    - name: "print stuff"
+      run: echo ${{ github.event.repository.name }} - ${GITHUB_REPOSITORY#*/} - ${{ github.run_number }} - ${{ github.run_attempt }}
 
     - name: "push"
       run: dotnet nuget push "bin/Release/${{ github.event.repository.name }}.${{ env.RELEASE_VERSION }}.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
