@@ -148,6 +148,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="files\*.cs" />
+	</ItemGroup>
+	
+	<ItemGroup>
 		<!-- Reference: https://devblogs.microsoft.com/nuget/nuget-contentFiles-demystified/ -->
 		<!--            https://blog.csmac.nz/post/speciality-nuget-packing/ -->
 		<!-- PEARL: if any of the files specified below are not found, we get silent failure. -->
@@ -159,6 +163,7 @@
 		<None Include="temp/joined.editorconfig" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/.editorconfig" />
 		<None Include="files/*.globalconfig" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/" />
 		<None Include="files/BannedSymbols.txt" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/" />
+		<None Include="files/*.cs" Pack="true" PackagePath="contentFiles/cs/any/MikeNakisCommonFiles/" BuildAction="Compile"/>
 	</ItemGroup>
 
 </Project>

@@ -2412,11 +2412,6 @@ dotnet_diagnostic.CS0168.severity = warning
 # CS0618: "'member' is obsolete: 'text'"
 dotnet_diagnostic.CS0618.severity = warning
 
-# CS0809: "Obsolete member overrides non-obsolete member"
-dotnet_diagnostic.CS0809.severity = none
-# Justification: It is perfectly fine for an obsolete member to override a non-obsolete member. We do so intentionally
-#     all over the place. This rule is junk.
-
 # CS1591: "Missing XML comment for publicly visible type or member '<>'"
 dotnet_diagnostic.CS1591.severity = none
 # Justification: #AintNoBodyGotNoTimeFoDat
