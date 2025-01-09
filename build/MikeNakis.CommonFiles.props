@@ -56,6 +56,9 @@
 		<LangVersion>12</LangVersion>
 		<ImplicitUsings>Disable</ImplicitUsings>
 		<Nullable>Enable</Nullable>
+		<DebugSymbols>True</DebugSymbols>
+		<DebugType Condition="'$(Configuration)' == 'Debug'">embedded</DebugType>
+		<DebugType Condition="'$(Configuration)' == 'Release'">portable</DebugType>
 
 		<!-- Magical incantations necessary for the magic to work -->
 		<!-- TODO: move this to project files that need it! -->
@@ -63,7 +66,7 @@
 		<PreserveCompilationContext>false</PreserveCompilationContext>-->
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
 		<AnalysisLevel>latest-Recommended</AnalysisLevel>
 		<RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
@@ -107,10 +110,10 @@
 		     intentionally all over the place. This warning is junk. -->
 	</PropertyGroup>
 	
-	<Target Name="ShowMessages" BeforeTargets="BeforeBuild">
+	<!--<Target Name="ShowMessages" BeforeTargets="BeforeBuild">
 		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Production Project Setup" Condition="'$(IsTestProject)' != 'True'" />
 		<Message Importance="High" Text="++++++++++++++++++++ $(MSBuildProjectName): Test Project Setup" Condition="'$(IsTestProject)' == 'True'" />
-	</Target>
+	</Target>-->
 
 	<ItemGroup Condition="'$(Configuration)'=='Debug'">
 		<AdditionalFiles Include="$(MikeNakisCommonFiles)\BannedSymbols.txt" Condition="'$(IncludeMikeNakisBannedApis)' != 'False'" />

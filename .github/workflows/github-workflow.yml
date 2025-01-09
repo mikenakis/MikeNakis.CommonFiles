@@ -25,6 +25,7 @@ env:
 #          The result of all this is that the whole prefix-suffix mechanism serves a very narrowly scoped purpose and
 #          is entirely useless for any other scenario.
   RELEASE_VERSION: 1.1.${{github.run_number}}${{github.run_attempt}}
+  BUILD_SERVER_BUILD: True
 
 jobs:
   build:

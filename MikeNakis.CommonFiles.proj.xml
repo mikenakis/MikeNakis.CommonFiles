@@ -106,9 +106,9 @@
 		<WriteLinesToFile File="temp/joined.editorconfig" Lines="@(JoinedFileContents)" Overwrite="true" />
 	</Target>
 
-	<!-- PEARL: Visual Studio will, entirely capriciously, hide certain files from the Solution Explorer. So we have to
-		manually add them to the project. Because it is always fun to manually reference your own existing files in
-		order to be able to open them. -->
+	<!-- PEARL: Visual Studio will, under entirely unknown circumstances, and entirely capriciously, hide certain files
+	    from the Solution Explorer. So we have to explicitly add them to the project. Because it is always fun to have
+		to reference your own existing files in order to be able to access them. -->
 	<ItemGroup>
 		<None Include="MikeNakis.CommonFiles.proj.xml" />
 		<None Include="files\.editorconfig" />

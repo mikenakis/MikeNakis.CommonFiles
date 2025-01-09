@@ -340,21 +340,29 @@ dotnet_diagnostic.IDE0050.severity = warning
 
 # IDE0051: "Remove unused private member"
 # Note: this is about private members that are NEITHER READ NOR WRITTEN.
+# PEARL: Presumably due to some roslyn or Visual Studio bug, if `nameof( <type> )` appears anywhere within a class,
+#    then this rule stops working for private methods in that class. (Where <type> can be any type, and "anywhere"
+#    includes even parameters to attributes on that class, and even different parts of a partial class.) 
+#    The workaround to this bug is to never use `nameof( <type> )`; use `typeof( <type> ).Name` instead.
+#    Also see IDE0082: "Convert typeof to nameof".
 # PEARL: If the severity of IDE0051 is set to "warning", then the code cleanup action "Fix analyzer warnings and errors
-#        set in EditorConfig" will cause entire unused functions to be removed from the code! This is an extremely 
-#        narrow-minded interpretation of the aim to only make non-breaking changes.
-dotnet_diagnostic.IDE0051.severity = suggestion
+#    set in EditorConfig" will cause entire unused functions to be removed from the code! This is an extremely 
+#    narrow-minded interpretation of the aim to only make non-breaking changes. The workaround is to never ask any "code
+#    quality" tools made by Microsoft to fix any issues; have them report the issues, and fix them manually.
+dotnet_diagnostic.IDE0051.severity = warning
 
 # IDE0052: "Remove unread private member"
 # Note: this is about private members that are WRITTEN BUT NOT READ.
 # PEARL: Under certain circumstances, IDE0052 does not work. Unread private members are not reported, and suppressions
 #        of such warnings are in turn flagged with IDE0079: "Remove unnecessary suppression".
-#        This is happening due to a compiler bug which was reported all the way back in 2021 and it has still
-#        not been fixed as of today (2024) see https://github.com/dotnet/roslyn/issues/54972
+#        This is happening due to a compiler bug which was reported all the way back in 2021 and it has still not been
+#        fixed as of today, 2024. (See https://github.com/dotnet/roslyn/issues/54972)
 dotnet_diagnostic.IDE0052.severity = warning
 
 # IDE0053: "Use expression body for lambdas"
 dotnet_diagnostic.IDE0053.severity = silent
+# Justification: we set the severity to `silent` so that Visual Studio never bothers us with this, but we set the option
+#    to `true` so as to be offered the option to apply the refactoring.
 
 	csharp_style_expression_bodied_lambdas = true
 
@@ -369,13 +377,13 @@ dotnet_diagnostic.IDE0054.severity = warning
 
 # IDE0055: "Formatting rule"
 # PEARL: this rule must be configured in .editorconfig, not in .globalconfig.
-#        To be fair, the documentation states that .globalconfig is meant for code analysis rules, not for formatting
-#        rules.
+#        To be fair, the documentation states that .globalconfig is for code analysis rules, not for formatting rules.
 #        However, this limitation appears to have been introduced in order to cover up for bugs:
 #        If you specify IDE0055 in .globalconfig instead of .editorconfig, the built-in formatter of Visual Studio will
 #        continue to work fine, and the "Format Code" option of the "Code Cleanup" command of Visual Studio will also
-#        continue to work fine, but `dotnet format` (or `dotnet format whitespace`) will completely mess up your code
+#        continue to work fine, but `dotnet format` (and `dotnet format whitespace`) will completely mess up your code
 #        by applying all default formatting to it, because it is apparently unaware of .globalconfig.
+dotnet_diagnostic.IDE0055.severity = warning
 
 # IDE0056: "Use index operator"
 dotnet_diagnostic.IDE0056.severity = suggestion
@@ -501,11 +509,9 @@ dotnet_diagnostic.IDE0078.severity = warning
 	csharp_style_prefer_pattern_matching = true
 
 # IDE0079: "Remove unnecessary suppression"
-# PEARL: As of Visual Studio 17.12.0 this warning is being issued on many legitimate suppressions, so we have no
-#        option but to suppress it for the time being.
-dotnet_diagnostic.IDE0079.severity = none
+dotnet_diagnostic.IDE0079.severity = warning
 
-	# Values: comma-separated list of rule ids or categories, or 'all' to disable, or 'none' to apply everywhere.
+	# Values: comma-separated list of rule ids or categories to exclude, or 'all' to disable, or 'none' to apply everywhere.
 	dotnet_remove_unnecessary_suppression_exclusions = none
 
 # IDE0080: "Remove unnecessary suppression operator"
@@ -514,11 +520,17 @@ dotnet_diagnostic.IDE0079.severity = none
 dotnet_diagnostic.IDE0080.severity = warning
 
 # IDE0081: "Remove ByVal"
+# Note: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
 dotnet_diagnostic.IDE0081.severity = none
-# Justification: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
 
 # IDE0082: "Convert typeof to nameof"
-dotnet_diagnostic.IDE0082.severity = warning
+# PEARL: Presumably due to some Roslyn / Visual Studio bug, if `nameof( <type> )` appears anywhere within a class, then
+#    IDE0051: "Remove unused private member" stops working for unused methods in that class. The workaround is to
+#    replace all instances of `nameof( <type> )` with `typeof( <type> ).Name`. Unfortunately, this workaround is not
+#    applicable in cases where the name of a type must be a compile-time constant, so there are some situations where we
+#    have to use `nameof( <type> )` and just live with the bug.
+dotnet_diagnostic.IDE0082.severity = none
+# Justification: Normally this rule would be okay to enable, but we cannot enable it due to the bug described above.
 
 # IDE0083: "Use pattern matching (not operator)"
 dotnet_diagnostic.IDE0083.severity = warning
@@ -526,8 +538,8 @@ dotnet_diagnostic.IDE0083.severity = warning
 	csharp_style_prefer_not_pattern = true
 
 # IDE0084: "Use pattern matching (IsNot operator)"
-dotnet_diagnostic.IDE0084.severity = none
-# Justification: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
+# Note: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
+dotnet_diagnostic.IDE0084.severity = warning
 
 # IDE0090: "Simplify `new` expression"
 #          a.k.a. "'new' expression can be simplified"
@@ -565,8 +577,8 @@ dotnet_diagnostic.IDE0130.severity = warning
 	dotnet_style_namespace_match_folder = true
 
 # IDE0140: "Simplify object creation"
+# Note: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
 dotnet_diagnostic.IDE0140.severity = none
-# Justification: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
 
 # IDE0150: "Prefer 'null' check over type check"
 dotnet_diagnostic.IDE0150.severity = warning
@@ -668,11 +680,32 @@ dotnet_diagnostic.IDE0290.severity = silent
 
     csharp_style_prefer_primary_constructors = true
 
-# PEARL: collection expressions create types that cannot be found with 'search for type'.
-# PEARL: collection expressions create defective types that do not properly implement `Equals()` and `GetHashCode()`.
-# PEARL: the following rules can be used to suggest the use of collection expressions but not to prohibit their use.
-# PEARL: `dotnet_style_prefer_collection_expression` somehow controls all of the following: IDE0300, IDE0301, IDE0302,
-#        IDE0303, IDE0304, and IDE0305.
+# IDE0300: "Use collection expression for array" (C# 12+)
+dotnet_diagnostic.IDE0300.severity = error
+# Justification: see comment below for `dotnet_style_prefer_collection_expression`.
+
+# IDE0301: "Use collection expression for empty" (C# 12+)
+dotnet_diagnostic.IDE0301.severity = error
+# Justification: see comment below for `dotnet_style_prefer_collection_expression`.
+
+# IDE0302: "Use collection expression for stackalloc" (C# 12+)
+dotnet_diagnostic.IDE0302.severity = error
+# Justification: see comment below for `dotnet_style_prefer_collection_expression`.
+
+# IDE0303: "Use collection expression for Create()" (C# 12+)
+dotnet_diagnostic.IDE0303.severity = error
+# Justification: see comment below for `dotnet_style_prefer_collection_expression`.
+
+# IDE0304: "Use collection expression for builder" (C# 12+)
+dotnet_diagnostic.IDE0304.severity = error
+# Justification: see comment below for `dotnet_style_prefer_collection_expression`.
+
+# IDE0305: "Use collection expression for fluent" (C# 12+)
+dotnet_diagnostic.IDE0305.severity = error
+# Justification: see comment below for `dotnet_style_prefer_collection_expression`.
+
+# Note: `dotnet_style_prefer_collection_expression` somehow controls all of the following: IDE0300, IDE0301, IDE0302,
+#    IDE0303, IDE0304, and IDE0305.
 # Possible values:
 #    - true | when_types_exactly_match -> Prefer collection expressions only when types match exactly, for example,
 #                                         int[] i = Array.Empty<int>();.
@@ -682,25 +715,12 @@ dotnet_diagnostic.IDE0290.severity = silent
 #                                         IEnumerable<T>, ICollection<T>, IList<T>, IReadOnlyCollection<T>,
 #                                         IReadOnlyList<T>.
 #    - false | never                   -> Disables the rule.
-dotnet_style_prefer_collection_expression = never
-
-# IDE0300: "Use collection expression for array" (C# 12+)
-dotnet_diagnostic.IDE0300.severity = error
-
-# IDE0301: "Use collection expression for empty" (C# 12+)
-dotnet_diagnostic.IDE0301.severity = error
-
-# IDE0302: "Use collection expression for stackalloc" (C# 12+)
-dotnet_diagnostic.IDE0302.severity = error
-
-# IDE0303: "Use collection expression for Create()" (C# 12+)
-dotnet_diagnostic.IDE0303.severity = error
-
-# IDE0304: "Use collection expression for builder" (C# 12+)
-dotnet_diagnostic.IDE0304.severity = error
-
-# IDE0305: "Use collection expression for fluent" (C# 12+)
-dotnet_diagnostic.IDE0305.severity = error
+# PEARL: collection expressions create types that cannot be found with 'search for type'.
+# PEARL: collection expressions create defective types that do not properly implement `Equals()` and `GetHashCode()`.
+# PEARL: the rules can be used to enforce the use of collection expressions but cannot be used to prohibit the use of
+#    collection expressions.
+	dotnet_style_prefer_collection_expression = never
+	# Justification: due to the PEARLs listed above, collection expressions are lame and should never be used.
 
 # IDE1005: "Use conditional delegate call"
 dotnet_diagnostic.IDE1005.severity = warning
@@ -722,9 +742,12 @@ dotnet_diagnostic.IDE1006.severity = warning
 # dotnet_naming_style.<StyleName>.required_suffix = <string>
 # dotnet_naming_style.<StyleName>.word_separator = <string>
 #
-# dotnet_naming_symbols.<SymbolsName>.applicable_kinds = one of: *, namespace, class, struct, interface, enum, property, method, field, event, delegate, parameter, type_parameter, local, local_function
-# dotnet_naming_symbols.<SymbolsName>.applicable_accessibilities = one of: *, public, internal or friend, private, protected, protected_internal or protected_friend, private_protected, local
-# dotnet_naming_symbols.<SymbolsName>.required_modifiers = one of: abstract or must_inherit, async, const, readonly, static or shared
+# dotnet_naming_symbols.<SymbolsName>.applicable_kinds = one of: *, namespace, class, struct, interface, enum, property,
+#    method, field, event, delegate, parameter, type_parameter, local, local_function
+# dotnet_naming_symbols.<SymbolsName>.applicable_accessibilities = one of: *, public, internal or friend, private,
+#    protected, protected_internal or protected_friend, private_protected, local
+# dotnet_naming_symbols.<SymbolsName>.required_modifiers = one of: abstract or must_inherit, async, const, readonly,
+#    static or shared
 #
 # dotnet_naming_rule.<RuleName>.style = <StyleName>
 # dotnet_naming_rule.<RuleName>.symbols = <SymbolsName>
@@ -863,7 +886,7 @@ dotnet_diagnostic.CA1000.severity = none
 
 # CA1001: "Types that own disposable fields should be disposable"
 # TODO: Good to have; should turn into a warning.
-dotnet_diagnostic.CA1001.severity = suggestion
+dotnet_diagnostic.CA1001.severity = warning
 
 # CA1002: Do not expose generic lists
 #         a.k.a. Change 'List<{0}>' in '{1}' to use 'Collection<T>', 'ReadOnlyCollection<T>' or 'KeyedCollection<K,V>'.
@@ -906,7 +929,7 @@ dotnet_diagnostic.CA1010.severity = warning
 
 # CA1012: "Abstract types should not have constructors"
 # TODO: Good to have; should turn into a warning.
-dotnet_diagnostic.CA1012.severity = suggestion
+dotnet_diagnostic.CA1012.severity = warning
 
 # CA1013: Undocumented/Nonexistent
 
@@ -1015,8 +1038,6 @@ dotnet_diagnostic.CA1044.severity = warning
 #        milking goats.
 #        The only part that describes a real problem is the "methods that have multiple return values" part. `ref` and
 #        `out` are not functional constructs, and as such they are messy to work with.
-# PEARL: As of the latest version of Visual Studio this rule does not appear tobe working anymore, so if you suppress it
-#        you will get IDE0079 "Remove unnecessary suppression".
 dotnet_diagnostic.CA1045.severity = warning
 
 # CA1046: "Do not overload operator equals on reference types"
@@ -1064,7 +1085,7 @@ dotnet_diagnostic.CA1058.severity = warning
 # PEARL: This rule is not content with the native methods being declared as internal in a static internal class;
 #        it also requires the name of the class to be "NativeMethods".  
 # PEARL: Visual Studio has a ridiculous bug where the debugger shows the wrong class if there are multiple classes with
-#        the same name, despite them being in different namespaces.
+#        the same name in the solution, despite them being in different namespaces.
 #        This means that if all native methods in all namespaces are placed in classes called "NativeMethods" the
 #        debugger will always be confused.
 dotnet_diagnostic.CA1060.severity = none
@@ -1264,7 +1285,8 @@ dotnet_diagnostic.CA1715.severity = none
 
 # CA1716: "Identifiers should not match keywords"
 dotnet_diagnostic.CA1716.severity = none
-# Justification: This is a Visual Basic-only rule, and we do not care at all about Visual Basic.
+# Justification: This rule exists for the benefit of programmers writing code in other CLR languages, and we do not care
+# about other CLR languages.
 
 # CA1717: "Only FlagsAttribute enums should have plural names"
 dotnet_diagnostic.CA1717.severity = warning
@@ -1314,6 +1336,17 @@ dotnet_diagnostic.CA1805.severity = suggestion
 
 # CA1806: "Do not ignore method results"
 dotnet_diagnostic.CA1806.severity = warning
+
+# CA1807: Used to be FxCop rule "Avoid unnecessary string creation", does not exist anymore.
+# CA1808: Does not exist.
+# CA1809: Used to be FxCop rule "Avoid excessive locals", does not exist anymore.
+
+# CA1810: "Initialize reference type static fields inline"
+dotnet_diagnostic.CA1810.severity = warning
+
+# CA1811 "Avoid uncalled private code"
+# This rule appears to not exist anymore. (Or maybe it is not enabled because it belongs to some "Microsoft.Performance" ruleset which we are not using.)
+dotnet_diagnostic.CA1811.severity = warning
 
 # CA1812: "Avoid uninstantiated internal classes"
 dotnet_diagnostic.CA1812.severity = warning
