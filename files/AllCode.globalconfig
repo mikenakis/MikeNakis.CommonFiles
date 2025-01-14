@@ -885,7 +885,6 @@ dotnet_diagnostic.CA1000.severity = none
 #    Static members on generic types are fine.
 
 # CA1001: "Types that own disposable fields should be disposable"
-# TODO: Good to have; should turn into a warning.
 dotnet_diagnostic.CA1001.severity = warning
 
 # CA1002: Do not expose generic lists
@@ -1336,6 +1335,9 @@ dotnet_diagnostic.CA1805.severity = suggestion
 
 # CA1806: "Do not ignore method results"
 dotnet_diagnostic.CA1806.severity = warning
+
+# TODO: add '|'-separated methods here, in "documentation ID format" (see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments#d4-processing-the-documentation-file)
+dotnet_code_quality.CA1806.additional_use_results_methods = M:MyNamespace.MyType.MyMethod1(ParamType)
 
 # CA1807: Used to be FxCop rule "Avoid unnecessary string creation", does not exist anymore.
 # CA1808: Does not exist.
