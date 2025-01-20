@@ -34,7 +34,8 @@ jobs:
     # runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
@@ -59,5 +60,8 @@ jobs:
     - name: "Release: pack"
       run: dotnet pack --configuration Release --no-restore --no-build
 
-    - name: "Release: push"
+    - name: "Release: push to nuget.org"
       run: dotnet nuget push "bin/Release/${{ github.event.repository.name }}.${{ env.RELEASE_VERSION }}.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+
+    - name: "Release: push to github packages"
+      run: dotnet nuget push "bin/Release/${{ github.event.repository.name }}.${{ env.RELEASE_VERSION }}.nupkg" --source https://nuget.pkg.github.com/MikeNakis/index.json --api-key ${{ github.token }}
