@@ -3,4 +3,4 @@
 **/obj/**
 *.user
 *wpftmp.csproj
-**/temp/**
+.*.testana.json
