@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
+		<Configurations>Debug</Configurations>
 	</PropertyGroup>
 
 	<!-- NOTE: This project has nothing to build. The project file exists only in order to trick Visual Studio into
