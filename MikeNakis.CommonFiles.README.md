@@ -15,7 +15,7 @@ This repository contains some files that are used by all (or almost all) of my p
 - `AllProjects.proj.xml`
 - `BannedSymbols.txt`
 - `ProductionCode.globalconfig`
-- `SymbolBanning.proj.xml`
+- `BannedApiAnalyzers.proj.xml`
 - `TestCode.globalconfig`
 
 The files are meant to be hard-linked by each project that needs them.
