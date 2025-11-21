@@ -1,6 +1,5 @@
 @echo off
-set sourceDirectory=%CD%
-if not exist "%sourceDirectory%\MikeNakis.CommonFiles.csproj" (
+if not exist "MikeNakis.CommonFiles.csproj" (
 	echo this script must be run in the MikeNakis.CommonFiles project directory.
 	goto :eof
 )
@@ -14,9 +13,11 @@ call :x ..\MikeNakis.SvgConvert
 call :x ..\MikeNakis.VsTail.Proxy
 call :x ..\Solution
 call :x ..\Cato
+call :x ..\Blaster
+call :x ..\MikeNakis.Testing
 goto :eof
 
 :x
   echo ==== %1
-  call CreateLinksforProject %sourceDirectory% %1
+  call CreateLinksforProject %1
   goto :eof
