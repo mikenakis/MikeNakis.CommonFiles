@@ -2,7 +2,13 @@
 
 set -o errexit -o nounset -o pipefail
 shopt -s expand_aliases
-# set -x
+#set -x
+
+declare self=$(realpath "$0")
+
+alias info='log ${self} ${LINENO} INFO'
+alias warn='log ${self} ${LINENO} WARN'
+alias error='log ${self} ${LINENO} ERROR'
 
 function log()
 {
@@ -13,20 +19,6 @@ function log()
 
 	printf "%s(%s): %s: %s\n" "${self}" ${line} "${level}" "${message}"
 }
-
-declare self=$(realpath "$0")
-
-alias info='log ${self} ${LINENO} INFO'
-alias warn='log ${self} ${LINENO} WARN'
-alias error='log ${self} ${LINENO} ERROR'
-
-declare source_path=$(dirname "${self}")
-
-declare target_path=$(realpath ${1-})
-if [ ! -d "${target_path}" ]; then
-	error "Directory does not exist: '${target_path}'"
-	exit 0
-fi
 
 function get_file()
 {
@@ -85,7 +77,18 @@ function get_file()
 	return 0
 }
 
-while IFS=$'\n' read line; do
+declare source_path=$(dirname "${self}")
+
+declare target_path=$(realpath $1)
+if [ ! -d "${target_path}" ]; then
+	error "Directory does not exist: '${target_path}'"
+	exit 0
+fi
+shift
+
+while [ "$*" != "" ]; do
+	declare line=$1
+	shift
     # info "line: '${line}'"
 	IFS=' ' read source target <<< "${line}"
     # info "source: '${source}' target: '${target}'"
