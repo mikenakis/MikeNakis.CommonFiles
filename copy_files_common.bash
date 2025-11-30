@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $(dirname "$0")/files/definitions.bash > /dev/null
+echo "This script is meant to be sourced from other scripts; it is not meant to be directly executed."
 
 function get_file()
 {
@@ -53,35 +53,12 @@ function get_file()
 	[[ $dry_run == true ]] && return
 
 	cp "$source" "$target"
-	return 0
 }
 
-function run()
+function copy_files()
 {
-	declare dry_run=false
-	declare file_list_filepath=
-
-	while [ $# -gt 0 ]; do
-		case "$1" in
-			--file-list=*)
-				file_list_filepath="${1#*=}"
-				;;
-			--dry-run)
-				dry_run=true
-				;;
-			*)
-				error "Invalid argument: '$1'"
-				exit 1
-		esac
-		shift
-	done
-
-	if [[ -z $file_list_filepath ]]; then
-		error "Missing argument: '--file-list'"
-		exit 1
-	fi
-
-	declare -r common_files_directory=$(dirname "$0")
+	declare -r common_files_directory=$1
+	declare -r target_directory=$2
 
 	while IFS=$'\r\n' read -u3 line; do
 
@@ -95,9 +72,7 @@ function run()
 			target=$source
 		fi
 
-		get_file "$common_files_directory/files/$source" "$target"
+		get_file "$common_files_directory/files/$source" "$target_directory/$target"
 
-	done 3< "$file_list_filepath"
+	done 3< "$target_directory/common_files.txt"
 }
-
-run $@

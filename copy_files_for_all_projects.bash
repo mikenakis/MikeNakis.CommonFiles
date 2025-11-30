@@ -2,24 +2,24 @@
 
 set -o errexit -o nounset -o pipefail
 shopt -s expand_aliases
-# set -x
 
-function project()
+function copy_common_files_for_project()
 {
 	declare -r project_directory=$1
-	echo === $project_directory ======================================================================================
-	(cd "$project_directory" && bash get_common_files.bash)
+	echo === $project_directory =========================================================
+	bash $project_directory/get_common_files.bash
+	echo 
 }
 
-project ../Blaster
-project ../Cato
-project ../digital-garden-programming
-project ../MikeNakis.Clio
-project ../MikeNakis.Console
-project ../MikeNakis.CSharpTypeNames
-project ../MikeNakis.Kit
-project ../MikeNakis.SvgConvert
-project ../MikeNakis.Testing
-project ../MikeNakis.VsTail.Proxy
-project ../Solution
-project ../TicTacToe
+copy_common_files_for_project ../Blaster
+copy_common_files_for_project ../Cato
+copy_common_files_for_project ../digital-garden-programming
+copy_common_files_for_project ../MikeNakis.Clio
+copy_common_files_for_project ../MikeNakis.Console
+copy_common_files_for_project ../MikeNakis.CSharpTypeNames
+copy_common_files_for_project ../MikeNakis.Kit
+copy_common_files_for_project ../MikeNakis.SvgConvert
+copy_common_files_for_project ../MikeNakis.Testing
+copy_common_files_for_project ../MikeNakis.VsTail.Proxy
+copy_common_files_for_project ../Solution
+copy_common_files_for_project ../TicTacToe
