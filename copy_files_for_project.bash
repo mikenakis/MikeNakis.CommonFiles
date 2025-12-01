@@ -4,6 +4,8 @@ source $(dirname "$0")/files/definitions.bash > /dev/null
 
 source $(dirname "$0")/copy_files_common.bash > /dev/null
 
+declare -r my_directory=$(dirname $(realpath --relative-to="$PWD" "$0"))
+	
 function run()
 {
 	declare dry_run=false
@@ -29,9 +31,7 @@ function run()
 		exit 1
 	fi
 
-	declare -r common_files_directory=$(dirname $(realpath --relative-to="$PWD" "$0"))
-	
-	copy_files $common_files_directory $target_directory
+	copy_files $my_directory $target_directory
 }
 
 run $@

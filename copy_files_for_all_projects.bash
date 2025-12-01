@@ -3,11 +3,13 @@
 set -o errexit -o nounset -o pipefail
 shopt -s expand_aliases
 
+declare -r my_directory=$(dirname $(realpath --relative-to="$PWD" $0))
+
 function copy_common_files_for_project()
 {
 	declare -r project_directory=$1
 	echo === $project_directory =========================================================
-	bash $project_directory/get_common_files.bash
+	bash $my_directory/$project_directory/get_common_files.bash
 	echo 
 }
 
