@@ -1696,9 +1696,12 @@ dotnet_diagnostic.CA2214.severity = warning
 dotnet_diagnostic.CA2215.severity = warning
 
 # CA2216: "Disposable types should declare finalizer"
-# TODO: I am not sure what is going on here; none of our disposable types declares a finalizer, and yet I have never
-#       seen this rule trigger. Investigate this.
-dotnet_diagnostic.CA2216.severity = warning
+# PEARL: This is not about disposable types. This is about disposable types that contain unmanaged resources.
+dotnet_diagnostic.CA2216.severity = none
+# Justification: We have absolutely no need for special handling of types containing unmanaged resources because
+#    we are not making use of the retarded `Dispose( bool disposing )` pattern.
+#    We are making use of the mandatory disposal pattern, (see `LifeGuard`,) which allows us to handle both managed and
+#    unmanaged resources the same way.
 
 # CA2217: "Do not mark enums with FlagsAttribute"
 # TODO: Revise this.
