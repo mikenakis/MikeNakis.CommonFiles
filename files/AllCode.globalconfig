@@ -938,7 +938,11 @@ dotnet_diagnostic.CA1005.severity = none
 # CA1007: Undocumented/Nonexistent
 
 # CA1008: "Enums should have zero value"
-dotnet_diagnostic.CA1008.severity = warning
+dotnet_diagnostic.CA1008.severity = none
+# PEARL: This stupid inspection does not only trigger on enums that do not have a zero value; it also triggers on
+#    enums that do have a zero value, but it is called something other than 'None'. Whoever decided that this should
+#    work this way is a complete retard.
+# Justification: Enums should have whatever values we choose.
 
 # CA1009: Undocumented/Nonexistent
 
