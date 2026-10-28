@@ -1,10 +1,13 @@
 #!/bin/bash
 
-source $(dirname "$0")/files/definitions.bash > /dev/null
+source $(dirname "$0")/files/definitions.bash > /dev/null || exit 1
 
-source $(dirname "$0")/copy_files_common.bash > /dev/null
+source $(dirname "$0")/copy_files_common.bash > /dev/null || exit 1
 
-declare -r my_directory=$(dirname $(realpath --relative-to="$PWD" "$0"))
+declare my_directory
+my_directory=$(realpath --relative-to="$PWD" "$0")
+my_directory=$(dirname "$my_directory")
+declare -r my_directory
 	
 function run()
 {
