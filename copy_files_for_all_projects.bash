@@ -25,6 +25,7 @@ copy_common_files_for_project ../MikeNakis.CSharpTypeNames
 copy_common_files_for_project ../MikeNakis.Kit
 copy_common_files_for_project ../MikeNakis.SvgConvert
 copy_common_files_for_project ../MikeNakis.Testing
+copy_common_files_for_project ../MikeNakis.ViewModeling
 copy_common_files_for_project ../MikeNakis.VsTail.Proxy
 copy_common_files_for_project ../MikeNakis.Wpf.D2DImage
 copy_common_files_for_project ../Solution
