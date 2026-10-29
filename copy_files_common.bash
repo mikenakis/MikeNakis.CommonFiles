@@ -50,7 +50,7 @@ function get_file()
 
 	info "Copy '$source' to '$target'"
 
-	[[ $dry_run == true ]] && return
+	if $dry_run; then return; fi
 
 	cp "$source" "$target"
 }

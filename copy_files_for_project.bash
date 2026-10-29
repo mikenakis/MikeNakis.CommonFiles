@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source $(dirname "$0")/files/definitions.bash > /dev/null || exit 1
+if ! source $(dirname "$0")/files/definitions.bash > /dev/null; then exit 1; fi
 
-source $(dirname "$0")/copy_files_common.bash > /dev/null || exit 1
+if ! source $(dirname "$0")/copy_files_common.bash > /dev/null; then exit 1; fi
 
 declare my_directory
 my_directory=$(realpath --relative-to="$PWD" "$0")
