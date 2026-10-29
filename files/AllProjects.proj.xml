@@ -192,10 +192,9 @@
 		<PackageReference Include="MSTest.TestFramework" Version="3.6.2" />
 	</ItemGroup>
 
-	<!-- [Claude] https://github.com/dotnet/ReferenceTrimmer
-		[Claude] It warns about unused references: RT0001 (reference), RT0002 (project reference), RT0003 (package reference).
-		[Claude] To exempt a single reference that is needed but not used in code, add `NoWarn="RT0002"` (or the matching code) to that reference in its project file. -->
-	<ItemGroup>
+	<!-- See https://github.com/dotnet/ReferenceTrimmer
+		Requires `GenerateDocumentationFile` to be enabled. -->
+	<ItemGroup Condition="'$(EnableNETAnalyzers)' == 'True'">
 		<PackageReference Include="ReferenceTrimmer" Version="3.5.13">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
