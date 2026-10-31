@@ -16,9 +16,10 @@ function copy_common_files_for_project()
 	echo 
 }
 
+copy_common_files_for_project ../AutoMixer
 copy_common_files_for_project ../Blaster
 copy_common_files_for_project ../Cato
-copy_common_files_for_project ../../../../digital-garden/digital-garden-programming
+copy_common_files_for_project ../digital-garden-programming
 copy_common_files_for_project ../MikeNakis.Clio
 copy_common_files_for_project ../MikeNakis.Console
 copy_common_files_for_project ../MikeNakis.CSharpTypeNames
