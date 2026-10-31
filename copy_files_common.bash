@@ -9,7 +9,7 @@ function get_file()
 
 	if [[ ! -f $source ]]; then
 		error "Source file does not exist: '$source'"
-		exit 0
+		exit 1
 	fi
 
 	if [[ ! -f $target ]]; then
