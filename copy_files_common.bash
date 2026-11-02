@@ -52,6 +52,8 @@ function get_file()
 
 	if $dry_run; then return; fi
 
+	# [Claude] Create the directory of the target first, because some targets are in directories that a repository does not have yet (e.g. `.config`).
+	mkdir -p "$(dirname "$target")"
 	cp "$source" "$target"
 }
 
